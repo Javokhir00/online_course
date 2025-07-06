@@ -25,7 +25,7 @@
                 <a href="{% url 'course:course_view_detail' pk=course.pk %}" class="btn btn-success btn-lg">View Course</a>
             {% else %}
                 <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-warning btn-lg">
-                    Please log in to view the course
+                    Login to view course
                 </a>
             {% endif %}
         </div>

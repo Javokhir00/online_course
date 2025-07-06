@@ -23,7 +23,7 @@ class CanJavohirRead(permissions.BasePermission):
 class WeekDayOnlyAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         today = datetime.datetime.today().weekday()
-        return today > 5
+        return today != 0
 
 
 

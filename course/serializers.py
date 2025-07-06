@@ -6,8 +6,8 @@ class CourseModelSerializer(serializers.ModelSerializer):
     subject_title = serializers.StringRelatedField(source = 'subject.title')
     subject_slug = serializers.SlugRelatedField(read_only=True, slug_field = 'slug', source = 'subject')
     username = serializers.CharField(source = 'owner.username')
-    avg_rating = serializers.FloatField()
-    count_comments = serializers.IntegerField()
+    avg_rating = serializers.FloatField(read_only=True, default=0.0)
+    count_comments = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Course

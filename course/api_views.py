@@ -108,7 +108,7 @@ class CourseList(APIView):
         courses = courses.annotate(avg_rating=Avg('comments__rating'), count_comments = Count('comments'))
         courses = courses.order_by('-avg_rating')
         serializer = CourseModelSerializer(courses, many=True)
-        permission_classes = [IsOwnerOrReadOnly]
+        # permission_classes = [IsOwnerOrReadOnly]
         return Response(serializer.data, status=HTTP_200_OK)
 
 
@@ -171,7 +171,7 @@ class CourseDelete(APIView):
 class CourseListCrud(RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseModelSerializer
-    permission_classes = [PutAndPatchOnly]
+    permission_classes = [WeekDayOnlyAccess]
 
     def get_queryset(self):
         queryset = Course.objects.all()

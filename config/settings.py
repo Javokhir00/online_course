@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'import_export',
     'rest_framework',
     'social_django',
+    'rest_framework.authtoken',
+
 
 
 ]
@@ -161,12 +163,16 @@ LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'course:index'
 LOGOUT_REDIRECT_URL = 'course:index'
 
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+
 
 SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
