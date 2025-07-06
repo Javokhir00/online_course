@@ -1,0 +1,41 @@
+{% extends "course/base/base.html" %}
+{% load static %}
+
+{% block title %}{{ course.title }} - View{% endblock %}
+
+{% block course_view_detail %}
+<div class="container py-5">
+    <h2 class="mb-4 text-primary">{{ course.title }} - View Course</h2>
+
+    {% for module in course.modules.all %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">{{ module.title }}</h5>
+        </div>
+        <div class="card-body">
+            {% for topic in module.topics.all %}
+                <div class="mb-3">
+                    <h6>{{ topic.item.title }}</h6>
+                    {% if topic.content_type.model == 'video' %}
+                        <div class="embed-responsive embed-responsive-16by9">
+                            <iframe class="embed-responsive-item" src="{{ topic.item.url }}" allowfullscreen></iframe>
+                        </div>
+                    {% elif topic.content_type.model == 'text' %}
+                        <p>{{ topic.item.body }}</p>
+                    {% elif topic.content_type.model == 'image' %}
+                        <img src="{{ topic.item.image.url }}" class="img-fluid" alt="Image">
+                    {% elif topic.content_type.model == 'file' %}
+                        <a href="{{ topic.item.file.url }}" download class="btn btn-outline-primary">Download File</a>
+                    {% endif %}
+                </div>
+                <hr>
+            {% empty %}
+                <p class="text-muted">No lessons available</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning">No modules available in this course</div>
+    {% endfor %}
+</div>
+{% endblock %}

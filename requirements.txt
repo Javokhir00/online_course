@@ -1,0 +1,11 @@
+pillow~=11.3.0
+pip~=25.1.1
+Django~=5.2.4
+asgiref~=3.9.0
+sqlparse~=0.5.3
+psycopg2~=2.9.10
+tablib~=3.8.0
+django-jazzmin~=3.0.1
+django-import-export~=4.3.8
+diff-match-patch~=20241021
+python-dotenv~=1.1.1

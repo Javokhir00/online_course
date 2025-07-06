@@ -1,0 +1,12 @@
+#secret_key
+SECRET_KEY='xxx'
+
+
+#psql_connection
+DB_NAME='xxx'
+DB_USER='xxx'
+DB_PASSWORD='xxx'
+DB_HOST='xxx'
+DB_PORT='xxx'
+
+
