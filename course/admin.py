@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Subject, Course, Module, Topic, Video, Image, Text, File, Student, Teacher
+from .models import Subject, Course, Module, Topic, Video, Image, Text, File, Student, Teacher, Comment
 from import_export.admin import ImportExportModelAdmin
 # Register your models here.
 
@@ -54,3 +54,8 @@ class StudentAdmin(ImportExportModelAdmin ,admin.ModelAdmin):
 @admin.register(Teacher)
 class TeacherAdmin(ImportExportModelAdmin ,admin.ModelAdmin):
     list_display = ['name', 'job']
+
+
+@admin.register(Comment)
+class CommentAdmin(ImportExportModelAdmin ,admin.ModelAdmin):
+    list_display = ['topic', 'rating', 'course']

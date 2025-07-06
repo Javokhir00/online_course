@@ -1,20 +1,43 @@
-from django.http import Http404
-from .models import Subject, Course
-from .serializers import SubjectModelSerializer, CourseModelSerializer
+from django.db.models import Count, Avg
+from rest_framework.generics import ListAPIView
+from rest_framework.viewsets import ModelViewSet
+
+from .models import Subject, Course, Comment
+from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND, \
-    HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 
 # ----------------------------- SUBJECT ---------------------------
 
-class SubjectList(APIView):
-    def get(self, request):
-        subjects = Subject.objects.all().order_by('id')
-        serializer = SubjectModelSerializer(subjects, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+# class SubjectList(APIView):
+#     def get(self, request):
+#         subjects = Subject.objects.all().order_by('id')
+#         serializer = SubjectModelSerializer(subjects, many=True, context={'request': request})
+#         return Response(serializer.data, status=HTTP_200_OK)
 
+class SubjectList(ListAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectModelSerializer
+
+    def get_queryset(self):
+        queryset = Subject.objects.all()
+        queryset = queryset.annotate(course_count=Count('courses'))
+        queryset = queryset.order_by('-course_count')
+        return queryset
+
+
+class SubjectListCrud(RetrieveUpdateDestroyAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectModelSerializer
+
+    def get_queryset(self):
+        queryset = Subject.objects.all()
+        # queryset = queryset.annotate(course_count=Count('courses'))
+        # queryset = queryset.order_by('course_count')
+        return queryset
 
 
 class SubjectDetail(APIView):
@@ -73,7 +96,9 @@ class SubjectDelete(APIView):
 
 class CourseList(APIView):
     def get(self, request):
-        courses = Course.objects.all().order_by('id')
+        courses = Course.objects.all()
+        courses = courses.annotate(avg_rating=Avg('comments__rating'), count_comments = Count('comments'))
+        courses = courses.order_by('-avg_rating')
         serializer = CourseModelSerializer(courses, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
@@ -127,3 +152,20 @@ class CourseDelete(APIView):
 
         course.delete()
         return Response({"message": "Course deleted successfully"}, status=HTTP_204_NO_CONTENT)
+
+
+class CourseListCrud(RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseModelSerializer
+
+    def get_queryset(self):
+        queryset = Course.objects.all()
+        return queryset
+
+
+# ----------------------------- COMMENT ---------------------------
+
+class CommentCrud(ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentModelSerializer
+
