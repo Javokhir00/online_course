@@ -10,7 +10,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 class Subject(models.Model):
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(unique=True, null=True, blank=True)
-    image = models.ImageField(upload_to='subject/images/')
+    image = models.ImageField(upload_to='subject/images/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.slug is None:
@@ -31,7 +31,7 @@ class Course(models.Model):
     duration = models.TimeField()
     price = models.DecimalField(max_digits=14, decimal_places=2)
     owner = models.ForeignKey(User,related_name='user_courses', on_delete=models.SET_NULL, null=True, blank=True)
-    image = models.ImageField(upload_to='course/images/')
+    image = models.ImageField(upload_to='course/images/', null=True, blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='courses')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
