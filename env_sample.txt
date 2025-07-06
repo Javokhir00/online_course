@@ -9,4 +9,13 @@ DB_PASSWORD='xxx'
 DB_HOST='xxx'
 DB_PORT='xxx'
 
+#email
+EMAIL_HOST_USER = 'xxx'  #provide your email here
+EMAIL_HOST_PASSWORD = 'xxx'
 
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'xxx'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'xxx'
+
+SOCIAL_AUTH_GITHUB_KEY = 'xxx'
+SOCIAL_AUTH_GITHUB_SECRET = 'xxx'

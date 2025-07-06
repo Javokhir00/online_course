@@ -110,9 +110,22 @@
                                 </div>
                             </div>
                             <a href="contact.html" class="nav-item nav-link">Contact</a>
-                        </div>
-                        <a class="btn btn-primary py-2 px-4 ml-auto d-none d-lg-block" href="">Join Now</a>
-                    </div>
+
+                            <!--              LOGIN BUTTON             -->
+
+                            <div>
+                                {% if user.is_authenticated %}
+                                    <div class="d-flex flex-column align-items-end">
+                                        <form method="post" action="{% url 'users:logout' %}" style="position: absolute; right: 0;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary py-2 px-4">Log Out</button>
+                                        </form>
+                                        <span class="text-primary" style="position: absolute; right: 0; top: 45px;">Logged in as: {{ user.username }}</span>
+                                    </div>
+                                {% else %}
+                                    <a class="btn btn-primary py-2 px-4" style="position: absolute; right: 0;" href="{% url 'users:login' %}">Login</a>
+                                {% endif %}
+                            </div>
                 </nav>
             </div>
         </div>

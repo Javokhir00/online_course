@@ -1,8 +1,9 @@
 from django.db.models import Count, Avg
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-
 from .models import Subject, Course, Comment
+from .permissions import IsOwnerOrReadOnly, CanJavohirRead, WeekDayOnlyAccess, CanReadPremium, EvenYearsOnly, SuperUserOnly, PutAndPatchOnly
 from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +19,8 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 #         serializer = SubjectModelSerializer(subjects, many=True, context={'request': request})
 #         return Response(serializer.data, status=HTTP_200_OK)
 
+
+
 class SubjectList(ListAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectModelSerializer
@@ -29,6 +32,7 @@ class SubjectList(ListAPIView):
         return queryset
 
 
+
 class SubjectListCrud(RetrieveUpdateDestroyAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectModelSerializer
@@ -38,6 +42,7 @@ class SubjectListCrud(RetrieveUpdateDestroyAPIView):
         # queryset = queryset.annotate(course_count=Count('courses'))
         # queryset = queryset.order_by('course_count')
         return queryset
+
 
 
 class SubjectDetail(APIView):
@@ -53,6 +58,7 @@ class SubjectDetail(APIView):
                 'message': 'Subject does not exist'
             }
             return Response(data)
+
 
 
 class SubjectCreate(APIView):
@@ -81,6 +87,7 @@ class SubjectUpdate(APIView):
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
+
 class SubjectDelete(APIView):
     def delete(self, request, pk):
         try:
@@ -94,13 +101,16 @@ class SubjectDelete(APIView):
 
 # ----------------------------- COURSE ---------------------------
 
+
 class CourseList(APIView):
     def get(self, request):
         courses = Course.objects.all()
         courses = courses.annotate(avg_rating=Avg('comments__rating'), count_comments = Count('comments'))
         courses = courses.order_by('-avg_rating')
         serializer = CourseModelSerializer(courses, many=True)
+        permission_classes = [IsOwnerOrReadOnly]
         return Response(serializer.data, status=HTTP_200_OK)
+
 
 
 class CourseDetail(APIView):
@@ -118,6 +128,7 @@ class CourseDetail(APIView):
             return Response(data)
 
 
+
 class CourseCreate(APIView):
     def post(self,request):
         serializer = CourseModelSerializer(data = request.data)
@@ -126,6 +137,7 @@ class CourseCreate(APIView):
             return Response(f'{serializer.data['title']} successfully created',status=HTTP_201_CREATED)
 
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
 
 
 class CourseUpdate(APIView):
@@ -143,6 +155,7 @@ class CourseUpdate(APIView):
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
+
 class CourseDelete(APIView):
     def delete(self, request, pk):
         try:
@@ -154,9 +167,11 @@ class CourseDelete(APIView):
         return Response({"message": "Course deleted successfully"}, status=HTTP_204_NO_CONTENT)
 
 
+
 class CourseListCrud(RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseModelSerializer
+    permission_classes = [PutAndPatchOnly]
 
     def get_queryset(self):
         queryset = Course.objects.all()
@@ -164,6 +179,7 @@ class CourseListCrud(RetrieveUpdateDestroyAPIView):
 
 
 # ----------------------------- COMMENT ---------------------------
+
 
 class CommentCrud(ModelViewSet):
     queryset = Comment.objects.all()

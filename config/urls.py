@@ -22,7 +22,8 @@ from config import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('course/', include('course.urls', namespace='course')),
-    # path('users/', include('users.urls', namespace='users')),
+    path('users/', include('users.urls', namespace='users')),
+    path('auth/', include('social_django.urls', namespace='social')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -17,9 +17,16 @@
                 <div class="mb-3">
                     <h6>{{ topic.item.title }}</h6>
                     {% if topic.content_type.model == 'video' %}
-                        <div class="embed-responsive embed-responsive-16by9">
-                            <iframe class="embed-responsive-item" src="{{ topic.item.url }}" allowfullscreen></iframe>
-                        </div>
+                        {% with topic.item.url|cut:'watch?v=' as video_id %}
+                            <div class="embed-responsive embed-responsive-16by9">
+                                <iframe width="560" height="315"
+                                    src="https://www.youtube.com/embed/4-Sj_owtx3Q"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        {% endwith %}
                     {% elif topic.content_type.model == 'text' %}
                         <p>{{ topic.item.body }}</p>
                     {% elif topic.content_type.model == 'image' %}
