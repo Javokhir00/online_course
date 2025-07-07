@@ -2,7 +2,7 @@ from django.urls import path, include
 from .views import *
 from .api_views import *
 from rest_framework import routers
-
+from rest_framework.authtoken.views import obtain_auth_token
 
 
 app_name = 'course'
@@ -34,5 +34,8 @@ urlpatterns = [
     path('course-delete/<int:pk>/', CourseDelete.as_view(), name='course-delete'),
     path('subject-update/<int:pk>/', SubjectUpdate.as_view(), name='subject-update'),
     path('subject-delete/<int:pk>/', SubjectDelete.as_view(), name='subject-delete'),
+    path('api/login/', obtain_auth_token, name='api_login'),
+    path('api/register/', RegisterView.as_view(), name='api_register'),
+    path('api/logout/', LogoutView.as_view(), name='api_logout'),
 
 ]

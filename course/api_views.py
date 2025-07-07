@@ -4,13 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from .models import Subject, Course, Comment
 from .permissions import IsOwnerOrReadOnly, CanJavohirRead, WeekDayOnlyAccess, CanReadPremium, EvenYearsOnly, SuperUserOnly, PutAndPatchOnly
-from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer
+from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer, RegisterSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
-
-
+from rest_framework.authtoken.models import Token
 # ----------------------------- SUBJECT ---------------------------
 
 # class SubjectList(APIView):
@@ -185,3 +184,26 @@ class CommentCrud(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentModelSerializer
 
+
+# ----------------------------- REGISTER ---------------------------
+
+
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=HTTP_201_CREATED)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+# ----------------------------- LOGOUT ---------------------------
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.user.auth_token.delete()
+        return Response({'message': 'Logged out successfully'}, status=HTTP_200_OK)
