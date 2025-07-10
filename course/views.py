@@ -2,9 +2,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView, DetailView
-
+from pip._vendor.requests.models import Response
+from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
+from course import serializers
 from course.models import Subject, Course, Student, Teacher
-
 
 # Create your views here.
 
@@ -86,3 +88,9 @@ class CourseViewDetail(LoginRequiredMixin, DetailView):
         course = self.get_object()
         context['modules'] = course.modules.prefetch_related('topics__content_type')
         return context
+
+
+
+
+
+

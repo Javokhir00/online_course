@@ -2,14 +2,21 @@ from django.db.models import Count, Avg
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from . import serializers
 from .models import Subject, Course, Comment
 from .permissions import IsOwnerOrReadOnly, CanJavohirRead, WeekDayOnlyAccess, CanReadPremium, EvenYearsOnly, SuperUserOnly, PutAndPatchOnly
-from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer, RegisterSerializer
+from .serializers import SubjectModelSerializer, CourseModelSerializer, CommentModelSerializer, RegisterSerializer, \
+    CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .serializers import UserModelSerializer
+
 # ----------------------------- SUBJECT ---------------------------
 
 # class SubjectList(APIView):
@@ -23,6 +30,8 @@ from rest_framework.authtoken.models import Token
 class SubjectList(ListAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectModelSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Subject.objects.all()
@@ -207,3 +216,36 @@ class LogoutView(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         return Response({'message': 'Logged out successfully'}, status=HTTP_200_OK)
+
+
+# class PremiumCourse(ListAPIView):
+#     queryset = Course.objects.all()
+#     serializer_class = [CanReadPremiumCourse]
+#
+#     def get_queryset(self):
+#         queryset = Course.objects.filter(is_premium=True)
+#         return queryset
+
+
+
+class UserLoginView(APIView):
+    def post(self, request):
+        serializer = UserModelSerializer(data = request.data)
+        if serializer.is_valid():
+            user = authenticate(username = serializer.validated_data['username'], password = serializer.validated_data['password'])
+            if user:
+                token, created = Token.objects.get_or_create(user = user)
+                return Response({
+                    'token': token.key,
+                    'username': user.username
+                })
+            else:
+                return Response({'error':'User nor found'}, status=401)
+        return Response(serializers.errors, status=400)
+
+
+
+
+class CustomObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+

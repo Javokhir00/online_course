@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Subject, Course, Comment
 # from django.contrib.auth.models import User
 from config.settings import AUTH_USER_MODEL
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 
@@ -51,3 +52,32 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+class UserModelSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate_password(self, value):
+        if len(value) < 6:
+            raise serializers.ValidationError('Password must be at least 6 characters')
+        return value
+
+
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['password'] = user.password
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['user'] = {
+            "username": self.user.username,
+            "password": self.user.password,
+        }
+
+        return data
