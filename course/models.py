@@ -29,7 +29,7 @@ class Subject(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=255, unique=True)
     overview = models.TextField(null=True, blank=True)
-    duration = models.TimeField()
+    duration = models.TimeField(null=True, blank=True)
     price = models.DecimalField(max_digits=14, decimal_places=2)
     owner = models.ForeignKey(AUTH_USER_MODEL,related_name='user_courses', on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(upload_to='course/images/', null=True, blank=True)

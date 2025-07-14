@@ -3,7 +3,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
-
 from . import serializers
 from .models import Subject, Course, Comment
 from .permissions import IsOwnerOrReadOnly, CanJavohirRead, WeekDayOnlyAccess, CanReadPremium, EvenYearsOnly, SuperUserOnly, PutAndPatchOnly
@@ -16,6 +15,12 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import UserModelSerializer
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+
+
+
 
 # ----------------------------- SUBJECT ---------------------------
 
@@ -30,8 +35,21 @@ from .serializers import UserModelSerializer
 class SubjectList(ListAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectModelSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+
+    def list(self, request, *args, **kwargs):
+        cache_key = 'subject_list'
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            return Response(cached_data)
+
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        cache.set(cache_key, data, timeout=60)
+        return Response(data)
 
     def get_queryset(self):
         queryset = Subject.objects.all()
@@ -41,70 +59,70 @@ class SubjectList(ListAPIView):
 
 
 
-class SubjectListCrud(RetrieveUpdateDestroyAPIView):
-    queryset = Subject.objects.all()
-    serializer_class = SubjectModelSerializer
-
-    def get_queryset(self):
-        queryset = Subject.objects.all()
-        # queryset = queryset.annotate(course_count=Count('courses'))
-        # queryset = queryset.order_by('course_count')
-        return queryset
-
-
-
-class SubjectDetail(APIView):
-    def get(self, request, pk):
-        try:
-            subject = Subject.objects.get(id=pk)
-            serializer = SubjectModelSerializer(subject)
-            return Response(serializer.data, status=HTTP_200_OK)
-        except Subject.DoesNotExist:
-            subject = None
-            data = {
-                'status': HTTP_400_BAD_REQUEST,
-                'message': 'Subject does not exist'
-            }
-            return Response(data)
+# class SubjectListCrud(RetrieveUpdateDestroyAPIView):
+#     queryset = Subject.objects.all()
+#     serializer_class = SubjectModelSerializer
+#
+#     def get_queryset(self):
+#         queryset = Subject.objects.all()
+#         queryset = queryset.annotate(course_count=Count('courses'))
+#         queryset = queryset.order_by('course_count')
+#         return queryset
 
 
 
-class SubjectCreate(APIView):
-    def post(self,request):
-        serializer = SubjectModelSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(f'{serializer.data['title']} successfully created',status=HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
-
-
-class SubjectUpdate(APIView):
-    def put(self, request, pk):
-        try:
-            subject = Subject.objects.get(pk=pk)
-        except Subject.DoesNotExist:
-            return Response({"error": "Subject not found"}, status=HTTP_404_NOT_FOUND)
-
-        serializer = SubjectModelSerializer(subject, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=HTTP_200_OK)
-
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+# class SubjectDetail(APIView):
+#     def get(self, request, pk):
+#         try:
+#             subject = Subject.objects.get(id=pk)
+#             serializer = SubjectModelSerializer(subject)
+#             return Response(serializer.data, status=HTTP_200_OK)
+#         except Subject.DoesNotExist:
+#             subject = None
+#             data = {
+#                 'status': HTTP_400_BAD_REQUEST,
+#                 'message': 'Subject does not exist'
+#             }
+#             return Response(data)
 
 
 
-class SubjectDelete(APIView):
-    def delete(self, request, pk):
-        try:
-            subject = Subject.objects.get(pk=pk)
-        except Subject.DoesNotExist:
-            return Response({"error": "Subject not found"}, status=HTTP_404_NOT_FOUND)
+# class SubjectCreate(APIView):
+#     def post(self,request):
+#         serializer = SubjectModelSerializer(data = request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(f'{serializer.data['title']} successfully created',status=HTTP_201_CREATED)
+#
+#         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-        subject.delete()
-        return Response({"message": "Subject deleted successfully"}, status=HTTP_204_NO_CONTENT)
+
+
+# class SubjectUpdate(APIView):
+#     def put(self, request, pk):
+#         try:
+#             subject = Subject.objects.get(pk=pk)
+#         except Subject.DoesNotExist:
+#             return Response({"error": "Subject not found"}, status=HTTP_404_NOT_FOUND)
+#
+#         serializer = SubjectModelSerializer(subject, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=HTTP_200_OK)
+#
+#         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+#
+#
+#
+# class SubjectDelete(APIView):
+#     def delete(self, request, pk):
+#         try:
+#             subject = Subject.objects.get(pk=pk)
+#         except Subject.DoesNotExist:
+#             return Response({"error": "Subject not found"}, status=HTTP_404_NOT_FOUND)
+#
+#         subject.delete()
+#         return Response({"message": "Subject deleted successfully"}, status=HTTP_204_NO_CONTENT)
 
 
 # ----------------------------- COURSE ---------------------------
@@ -119,71 +137,82 @@ class CourseList(APIView):
         # permission_classes = [IsOwnerOrReadOnly]
         return Response(serializer.data, status=HTTP_200_OK)
 
+    def list(self, request, *args, **kwargs):
+        cache_key = 'course_list'
+        cached_data = cache.get(cache_key)
 
+        if cached_data:
+            return Response(cached_data)
 
-class CourseDetail(APIView):
-    def get(self, request, pk):
-        try:
-            course = Course.objects.get(id=pk)
-            serializer = CourseModelSerializer(course)
-            return Response(serializer.data, status=HTTP_200_OK)
-        except Course.DoesNotExist:
-            course = None
-            data = {
-                'status': HTTP_400_BAD_REQUEST,
-                'message': 'Course does not exist'
-            }
-            return Response(data)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        cache.set(cache_key, data, timeout=60)
+        return Response(data)
 
-
-
-class CourseCreate(APIView):
-    def post(self,request):
-        serializer = CourseModelSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(f'{serializer.data['title']} successfully created',status=HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
-
-
-class CourseUpdate(APIView):
-    def put(self, request, pk):
-        try:
-            course = Course.objects.get(pk=pk)
-        except Course.DoesNotExist:
-            return Response({"error": "Course not found"}, status=HTTP_404_NOT_FOUND)
-
-        serializer = CourseModelSerializer(course, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=HTTP_200_OK)
-
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+# class CourseDetail(APIView):
+#     def get(self, request, pk):
+#         try:
+#             course = Course.objects.get(id=pk)
+#             serializer = CourseModelSerializer(course)
+#             return Response(serializer.data, status=HTTP_200_OK)
+#         except Course.DoesNotExist:
+#             course = None
+#             data = {
+#                 'status': HTTP_400_BAD_REQUEST,
+#                 'message': 'Course does not exist'
+#             }
+#             return Response(data)
 
 
 
-class CourseDelete(APIView):
-    def delete(self, request, pk):
-        try:
-            course = Course.objects.get(pk=pk)
-        except Course.DoesNotExist:
-            return Response({"error": "Course not found"}, status=HTTP_404_NOT_FOUND)
+# class CourseCreate(APIView):
+#     def post(self,request):
+#         serializer = CourseModelSerializer(data = request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(f'{serializer.data['title']} successfully created',status=HTTP_201_CREATED)
+#
+#         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+#
+#
+#
+# class CourseUpdate(APIView):
+#     def put(self, request, pk):
+#         try:
+#             course = Course.objects.get(pk=pk)
+#         except Course.DoesNotExist:
+#             return Response({"error": "Course not found"}, status=HTTP_404_NOT_FOUND)
+#
+#         serializer = CourseModelSerializer(course, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=HTTP_200_OK)
+#
+#         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-        course.delete()
-        return Response({"message": "Course deleted successfully"}, status=HTTP_204_NO_CONTENT)
 
-
-
-class CourseListCrud(RetrieveUpdateDestroyAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseModelSerializer
-    permission_classes = [WeekDayOnlyAccess]
-
-    def get_queryset(self):
-        queryset = Course.objects.all()
-        return queryset
+#
+# class CourseDelete(APIView):
+#     def delete(self, request, pk):
+#         try:
+#             course = Course.objects.get(pk=pk)
+#         except Course.DoesNotExist:
+#             return Response({"error": "Course not found"}, status=HTTP_404_NOT_FOUND)
+#
+#         course.delete()
+#         return Response({"message": "Course deleted successfully"}, status=HTTP_204_NO_CONTENT)
+#
+#
+#
+# class CourseListCrud(RetrieveUpdateDestroyAPIView):
+#     queryset = Course.objects.all()
+#     serializer_class = CourseModelSerializer
+#     permission_classes = [WeekDayOnlyAccess]
+#
+#     def get_queryset(self):
+#         queryset = Course.objects.all()
+#         return queryset
 
 
 # ----------------------------- COMMENT ---------------------------

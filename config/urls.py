@@ -24,6 +24,7 @@ from rest_framework_simplejwt.views import (
 
 )
 from course.api_views import CustomObtainPairView
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 
 
@@ -39,3 +40,7 @@ urlpatterns = [
     path('api/token/custom', CustomObtainPairView.as_view(), name='custom_token_obtain_pair'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+urlpatterns += debug_toolbar_urls()
